@@ -6,8 +6,6 @@
 #include <time.h>
 #include <stdio.h>
 
-#define NUM_THREADS 12
-
 using namespace std;
 
 typedef std::chrono::high_resolution_clock Clock;
@@ -26,18 +24,32 @@ void printPrime(int x) {
         cout << x << " ";
     }
 }
-
+void loopPrimes(int x, int chunkSize){
+    for(int i = x; i < x + chunkSize; i++){
+        printPrime(i);
+    }
+}
 
 int main(int argc, char** argv) {
-    thread* threads[NUM_THREADS];
+    int numThreads = atoi(argv[1]);
+    thread* threads[numThreads];
+    int chunkSize = atoi(argv[2]) / numThreads;
     Clock::time_point tic = Clock::now();
     
     int N = atoi(argv[1]);
-    for (int x = 2; x < N; x++) {
-        printPrime(x);
+    for (int i = 0; i < numThreads; i++) {
+        threads[i] = new thread(loopPrimes, i * chunkSize, chunkSize);
     }
-
+    for (int i = 0; i < numThreads; i++) {
+        threads[i]->join();
+    }
     Clock::time_point toc = Clock::now();
     milliseconds ms = std::chrono::duration_cast<milliseconds>(toc-tic);
     cout << "\n\nTime elapsed: " << ms.count()  << "ms\n";
+    /*
+    for(int i = 0; i < numThreads; i++){
+        delete threads[i];
+    }
+    delete[] threads;
+    */
 }
